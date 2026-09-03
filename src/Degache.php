@@ -11,6 +11,7 @@ use AmineZhioua\DegachePhp\Validators\PhoneValidator;
 use AmineZhioua\DegachePhp\Validators\CinValidator;
 use AmineZhioua\DegachePhp\Validators\CarPlateValidator;
 use AmineZhioua\DegachePhp\Validators\RibValidator;
+use AmineZhioua\DegachePhp\Validators\IbanValidator;
 use AmineZhioua\DegachePhp\Validators\PostalCodeValidator;
 use AmineZhioua\DegachePhp\Validators\TaxIdValidator;
 use AmineZhioua\DegachePhp\Formatters\CurrencyFormatter;
@@ -63,6 +64,18 @@ final class Degache
 
     public static function getBankInfoFromRIB(?string $rib): ?BankInfo {
         return RibValidator::getBankFromRib($rib);
+    }
+
+    public static function validateIBAN(?string $iban): bool {
+        return IbanValidator::validate($iban);
+    }
+
+    public static function getBankInfoFromIBAN(?string $iban): ?BankInfo {
+        return IbanValidator::getBankFromIban($iban);
+    }
+
+    public static function getRIBFromIBAN(?string $iban): ?string {
+        return IbanValidator::toRib($iban);
     }
 
     /*

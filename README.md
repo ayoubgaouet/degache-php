@@ -1,6 +1,6 @@
 # degache-php
 
-A framework-agnostic PHP library of Tunisian utilities — validators for phone numbers, CIN, RIB, car plates, postal codes, and tax IDs, plus locale-aware currency and date formatting.
+A framework-agnostic PHP library of Tunisian utilities — validators for phone numbers, CIN, RIB, IBAN, car plates, postal codes, and tax IDs, plus locale-aware currency and date formatting.
 
 Ported from [degachejs](https://github.com/) (the original JavaScript/TypeScript library), with the API redesigned to feel native to PHP rather than a direct translation.
 
@@ -75,20 +75,42 @@ Degache::validateCIN('99999999'); // false — must start with 0 or 1
 
 ### RIB / Banks
 
-Validates a 20-digit Tunisian bank RIB and identifies the issuing bank.
+Validates a 20-digit Tunisian bank RIB — structure, known bank code, and a
+real ISO 7064 MOD 97-10 checksum on the 2-digit key — and identifies the
+issuing bank.
 
 ```php
 use AmineZhioua\DegachePhp\Degache;
 
-Degache::validateRIB('01123456789012345678'); // true — ATB
-Degache::validateRIB('99123456789012345678'); // false — unknown bank code
+Degache::validateRIB('01123456789012345618'); // true — ATB, valid key
+Degache::validateRIB('01123456789012345678'); // false — wrong key
+Degache::validateRIB('99123456789012345618'); // false — unknown bank code
 
-$bank = Degache::getBankInfoFromRIB('08123456789012345678');
+$bank = Degache::getBankInfoFromRIB('08003000612073212763');
 // $bank->code === '08'
 // $bank->name === 'Banque Internationale Arabe de Tunisie'
 ```
 
-> **Note:** RIB validation checks structural format and that the bank code exists, but does **not** yet verify the RIB key checksum digit.
+### IBAN
+
+Validates a Tunisian IBAN (`TN` + 2 check digits + the 20-digit RIB) — its own
+MOD 97-10 checksum plus the embedded RIB — and can recover the RIB and bank
+from it. Every valid Tunisian IBAN starts with `TN59`: since a valid RIB is
+divisible by 97, the check digits are forced to that value.
+
+```php
+use AmineZhioua\DegachePhp\Degache;
+
+Degache::validateIBAN('TN5910006035183598478831'); // true
+Degache::validateIBAN('TN6010006035183598478831'); // false — wrong check digits
+
+Degache::getRIBFromIBAN('TN5910006035183598478831');
+// '10006035183598478831'
+
+$bank = Degache::getBankInfoFromIBAN('TN5910006035183598478831');
+// $bank->code === '10'
+// $bank->name === 'Société Tunisienne de Banque'
+```
 
 ### Car plate
 
